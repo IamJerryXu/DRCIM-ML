@@ -1,0 +1,16 @@
+data/
+dataset/
+checkpoints/
+results/
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.h5
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/

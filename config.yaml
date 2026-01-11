@@ -1,0 +1,169 @@
+# Global Configuration for GMA-MFEA
+# 优化版本 v2.2 - 平衡重建与角色对齐
+
+project:
+  name: "GMA-MFEA"
+  seed: 42
+  device: "cuda:6"  # or "cpu"
+
+paths:
+  dataset_root: "./dataset"
+  data_root: "./data"
+  checkpoints: "./checkpoints"
+  results: "./results"
+
+gma:
+  # === 模型架构 ===
+  input_dim: 304         # 12 (centrality) + 36 (LapPE) + 256 (Node2Vec)
+  centrality_dim: 12
+  lap_pe_dim: 36
+  num_groups: 8
+  k_steps: 5
+  rrwp_k_steps: 5
+  layers: 3              # 回退到3层，4层可能过拟合
+  hidden_dim: 512
+  output_dim: 256
+  heads: 8               # 减少head数，降低复杂度
+  dropout: 0.1           # 回退到0.1，0.15可能太强
+  
+  # === 训练参数 ===
+  lr: 0.0008             # 稍微提高学习率，加速收敛
+  epochs: 300
+  weight_decay: 0.0005   # 降低正则化，之前0.001可能太强
+  log_every: 10
+  batch_size: 8
+  grad_accum_steps: 4
+  
+  # === 损失权重 (平衡调整 v2.2) ===
+  # 核心原则：重建是基础，对齐是锦上添花
+  lambda_recon: 3.0           # 重建权重最高！
+  lambda_align: 0.2           # MMD只做辅助
+  lambda_contrastive: 0.0     # 关闭
+  lambda_role: 0.5            # 角色对齐适度
+  
+  # === 训练调度 ===
+  lambda_schedule: "linear"
+  recon_pretrain_epochs: 150  # 前150轮纯重建
+  
+  # 150-300轮: 非常温和地引入对齐
+  lambda_recon_start: 3.0     # 重建权重保持高
+  lambda_recon_end: 2.5       # 后期仍然高
+  lambda_align_start: 0.0
+  lambda_align_end: 0.2       # MMD终值很小
+  lambda_role_start: 0.0
+  lambda_role_end: 0.5        # 角色对齐终值适中
+  lambda_contrastive_start: 0.0
+  lambda_contrastive_end: 0.0
+  
+  # === 重建损失配置 ===
+  recon_neg_ratio: 2.0        # 回退到2.0，3.0可能太激进
+  recon_logit_scale: 3.0      # 回退到3.0
+  recon_use_l2_norm: true
+  recon_two_hop_ratio: 0.2    # 降低二跳
+  recon_deg_norm: true
+  recon_hard_neg_ratio: 0.15  # 略微降低
+  recon_hard_pool_ratio: 3.0  # 回退
+  
+  # === 对比学习配置 (关闭) ===
+  contrastive_temp: 0.2
+  contrastive_max_samples: 1024
+  use_projection: false
+  proj_hidden_dim: 256
+  proj_out_dim: 128
+  proj_dropout: 0.0
+  contrastive_pos_mode: "knn"
+  contrastive_topk: 10
+  
+  # === 角色对齐配置 ===
+  role_temperature: 0.1       # 回退到0.1，0.07太尖锐
+  role_alpha_temperature: 0.5 # 回退到0.5，0.3太强
+  role_topk_ratio: 0.15       # 回退到15%
+  role_use_hub_contrastive: true
+  role_use_alpha_matching: true
+  role_use_prototype: true
+  role_num_prototypes: 3      # 回退到3个原型
+  
+  # === 模型细节 ===
+  groupkan_backend: "torch"
+  ammd_max_samples: 1024
+  ammd_sample_mode: "topk"
+  ffn_mult: 4
+  attn_act: "relu"
+  attn_clamp: 5.0
+  signed_sqrt: true
+  edge_enhance: true
+  save_weights: true
+  checkpoint_prefix: "kaa_grit_v2"
+
+dataset:
+  gcn_inchannel: 12
+  lap_pe_dim: 36
+  rrwp_k_steps: 5
+  is_pe: false
+  use_node2vec: true
+  preprocess_workers: 4
+  eval_samples: 30
+  single_file: ""
+  graph_embedding: 256
+  p: 1.5
+  q: 0.5
+  walk_length: 6
+  num_walks: 100
+  window_size: 10
+  workers: 10
+  walk_length_f: 6
+  num_walks_f: 100
+  p_f: 1.0
+  q_f: 1.0
+  label_path: "./dataset/label/"
+  is_cover_label: false
+
+mfea:
+  # === 基本参数 ===
+  num_nodes: 100              # 每层节点数 (运行时会被实际数据覆盖)
+  seed_budget: 10             # 种子预算 |S_A| = |S_B|
+  budget_l1: 15               # Layer 1 种子数
+  budget_l2: 15               # Layer 2 种子数
+  population_size: 100        # 种群大小
+  num_generations: 60         # 演化代数 (先跑60代看看)
+  seed: 42                    # 随机种子
+  
+  # === 遗传算子参数 ===
+  crossover_prob: 0.9         # 交叉概率 pc
+  rmp: 0.3                    # 跨任务随机配对概率
+  mutation_prob: 0.15         # 随机变异概率 pm (提高)
+  gma_mutation_prob: 0.25     # GMA邻域变异概率 (提高)
+  transfer_ratio: 0.3         # 跨任务交叉时迁移基因比例
+  
+  # === 选择参数 ===
+  elite_per_task: 5           # 每个任务保留的精英数
+  
+  # === 初始化策略比例 ===
+  elite_ratio: 0.25           # 精英群 (α采样)
+  robust_ratio: 0.25          # 鲁棒群 (2-hop+聚类)
+  aligned_ratio: 0.20         # 对齐群 (S_align配对)
+  random_ratio: 0.30          # 随机群
+  
+  # === 局部搜索 ===
+  local_search_enabled: true  # 开启局部搜索
+  local_search_interval: 10   # 每10代做一次局部搜索
+  
+  # === 影响力传播参数 ===
+  propagation_prob: 0.01      # ICm传播概率 p
+
+# === 攻击/评估参数 ===
+attack:
+  attack_mode: "2hop"         # 攻击策略: 2hop / degree / random
+  attack_ratio: 0.1           # 攻击节点比例
+  attack_steps: null          # 攻击步数 (null则由attack_ratio计算)
+
+tasks:
+  T1:
+    name: "Layer 1 Competitive Influence (R_CS^1)"
+    description: "Maximize S_A influence on Layer 1 against S_B"
+  T2:
+    name: "Layer 2 Competitive Influence (R_CS^2)"
+    description: "Maximize S_B influence on Layer 2 against S_A"
+  T3:
+    name: "Collaborative Robustness (R_CR)"
+    description: "Maximize joint influence across both layers"

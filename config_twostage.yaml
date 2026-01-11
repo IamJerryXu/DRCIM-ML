@@ -1,0 +1,124 @@
+# Global Configuration for GMA-MFEA
+# 两阶段版本 - 先重建后对齐
+
+project:
+  name: "GMA-MFEA-TwoStage"
+  seed: 42
+  device: "cuda:7"  # 用不同的GPU
+
+paths:
+  dataset_root: "./dataset"
+  data_root: "./data"
+  checkpoints: "./checkpoints"
+  results: "./results"
+
+gma:
+  # === 模型架构 (与动态版本一致) ===
+  input_dim: 304
+  centrality_dim: 12
+  lap_pe_dim: 36
+  num_groups: 8
+  k_steps: 5
+  rrwp_k_steps: 5
+  layers: 4
+  hidden_dim: 512
+  output_dim: 256
+  heads: 16
+  dropout: 0.15
+  
+  # === 两阶段训练参数 ===
+  # 阶段1: 纯重建
+  stage1_epochs: 120         # 充分学习层内拓扑
+  stage1_lr: 0.0008          # 稍高学习率，快速收敛
+  stage1_lambda_recon: 2.0   # 只有重建损失
+  stage1_lambda_align: 0.0
+  stage1_lambda_role: 0.0
+  stage1_lambda_contrastive: 0.0
+  stage1_target_auc: 0.78    # 阶段1目标AUC（达标才进入阶段2）
+  
+  # 阶段2: 固定权重联合训练 (v2 - 保护重建)
+  stage2_epochs: 150         # 缩短对齐训练 (200→150)
+  stage2_lr: 0.0002          # 更低学习率 (0.0003→0.0002)
+  stage2_lambda_recon: 2.5   # 大幅提高重建约束 (1.5→2.5)
+  stage2_lambda_align: 0.15  # 降低MMD (0.3→0.15)
+  stage2_lambda_role: 0.5    # 大幅降低角色对齐 (1.2→0.5)
+  stage2_lambda_contrastive: 0.0
+  
+  # 通用参数
+  weight_decay: 0.001
+  log_every: 10
+  batch_size: 8
+  grad_accum_steps: 4
+  
+  # === 重建损失配置 ===
+  recon_neg_ratio: 3.0
+  recon_logit_scale: 4.0
+  recon_use_l2_norm: true
+  recon_two_hop_ratio: 0.3
+  recon_deg_norm: true
+  recon_hard_neg_ratio: 0.2
+  recon_hard_pool_ratio: 5.0
+  
+  # === 角色对齐配置 ===
+  role_temperature: 0.07
+  role_alpha_temperature: 0.3
+  role_topk_ratio: 0.2
+  role_use_hub_contrastive: true
+  role_use_alpha_matching: true
+  role_use_prototype: true
+  role_num_prototypes: 5
+  
+  # === 其他 ===
+  use_projection: false
+  groupkan_backend: "torch"
+  ammd_max_samples: 1024
+  ammd_sample_mode: "topk"
+  ffn_mult: 4
+  attn_act: "relu"
+  attn_clamp: 5.0
+  signed_sqrt: true
+  edge_enhance: true
+  save_weights: true
+  checkpoint_prefix: "kaa_grit_twostage"
+
+dataset:
+  gcn_inchannel: 12
+  lap_pe_dim: 36
+  rrwp_k_steps: 5
+  is_pe: false
+  use_node2vec: true
+  preprocess_workers: 4
+  eval_samples: 30
+  single_file: ""
+  graph_embedding: 256
+  p: 1.5
+  q: 0.5
+  walk_length: 6
+  num_walks: 100
+  window_size: 10
+  workers: 10
+  walk_length_f: 6
+  num_walks_f: 100
+  p_f: 1.0
+  q_f: 1.0
+  label_path: "./dataset/label/"
+  is_cover_label: false
+
+mfea:
+  pop_size: 100
+  max_gen: 500
+  rmp: 0.3
+  mutation_rate: 0.1
+
+tasks:
+  attack_mode: "degree"
+  T1:
+    name: "Single Layer Influence Maximization"
+    budget: 10
+  T2:
+    name: "Cross Layer Influence Maximization"
+    budget: 10
+  T3:
+    name: "Robustness Optimization"
+    budget: 10
+    attack_ratio: 0.1

@@ -1,0 +1,138 @@
+# Global Configuration for GMA-MFEA
+# 优化版本 v2.2 - 平衡重建与角色对齐
+
+project:
+  name: "GMA-MFEA"
+  seed: 42
+  device: "cuda:6"  # or "cpu"
+
+paths:
+  dataset_root: "./dataset"
+  data_root: "./data"
+  checkpoints: "./checkpoints"
+  results: "./results"
+
+gma:
+  # === 模型架构 ===
+  input_dim: 304         # 12 (centrality) + 36 (LapPE) + 256 (Node2Vec)
+  centrality_dim: 12
+  lap_pe_dim: 36
+  num_groups: 8
+  k_steps: 5
+  rrwp_k_steps: 5
+  layers: 3              # 回退到3层，4层可能过拟合
+  hidden_dim: 512
+  output_dim: 256
+  heads: 8               # 减少head数，降低复杂度
+  dropout: 0.1           # 回退到0.1，0.15可能太强
+  
+  # === 训练参数 ===
+  lr: 0.0008             # 稍微提高学习率，加速收敛
+  epochs: 300
+  weight_decay: 0.0005   # 降低正则化，之前0.001可能太强
+  log_every: 10
+  batch_size: 8
+  grad_accum_steps: 4
+  
+  # === 损失权重 (平衡调整 v2.2) ===
+  # 核心原则：重建是基础，对齐是锦上添花
+  lambda_recon: 3.0           # 重建权重最高！
+  lambda_align: 0.2           # MMD只做辅助
+  lambda_contrastive: 0.0     # 关闭
+  lambda_role: 0.5            # 角色对齐适度
+  
+  # === 训练调度 ===
+  lambda_schedule: "linear"
+  recon_pretrain_epochs: 150  # 前150轮纯重建
+  
+  # 150-300轮: 非常温和地引入对齐
+  lambda_recon_start: 3.0     # 重建权重保持高
+  lambda_recon_end: 2.5       # 后期仍然高
+  lambda_align_start: 0.0
+  lambda_align_end: 0.2       # MMD终值很小
+  lambda_role_start: 0.0
+  lambda_role_end: 0.5        # 角色对齐终值适中
+  lambda_contrastive_start: 0.0
+  lambda_contrastive_end: 0.0
+  
+  # === 重建损失配置 ===
+  recon_neg_ratio: 2.0        # 回退到2.0，3.0可能太激进
+  recon_logit_scale: 3.0      # 回退到3.0
+  recon_use_l2_norm: true
+  recon_two_hop_ratio: 0.2    # 降低二跳
+  recon_deg_norm: true
+  recon_hard_neg_ratio: 0.15  # 略微降低
+  recon_hard_pool_ratio: 3.0  # 回退
+  
+  # === 对比学习配置 (关闭) ===
+  contrastive_temp: 0.2
+  contrastive_max_samples: 1024
+  use_projection: false
+  proj_hidden_dim: 256
+  proj_out_dim: 128
+  proj_dropout: 0.0
+  contrastive_pos_mode: "knn"
+  contrastive_topk: 10
+  
+  # === 角色对齐配置 ===
+  role_temperature: 0.1       # 回退到0.1，0.07太尖锐
+  role_alpha_temperature: 0.5 # 回退到0.5，0.3太强
+  role_topk_ratio: 0.15       # 回退到15%
+  role_use_hub_contrastive: true
+  role_use_alpha_matching: true
+  role_use_prototype: true
+  role_num_prototypes: 3      # 回退到3个原型
+  
+  # === 模型细节 ===
+  groupkan_backend: "torch"
+  ammd_max_samples: 1024
+  ammd_sample_mode: "topk"
+  ffn_mult: 4
+  attn_act: "relu"
+  attn_clamp: 5.0
+  signed_sqrt: true
+  edge_enhance: true
+  save_weights: true
+  checkpoint_prefix: "kaa_grit_v2"
+
+dataset:
+  gcn_inchannel: 12
+  lap_pe_dim: 36
+  rrwp_k_steps: 5
+  is_pe: false
+  use_node2vec: true
+  preprocess_workers: 4
+  eval_samples: 30
+  single_file: ""
+  graph_embedding: 256
+  p: 1.5
+  q: 0.5
+  walk_length: 6
+  num_walks: 100
+  window_size: 10
+  workers: 10
+  walk_length_f: 6
+  num_walks_f: 100
+  p_f: 1.0
+  q_f: 1.0
+  label_path: "./dataset/label/"
+  is_cover_label: false
+
+mfea:
+  pop_size: 100
+  max_gen: 500
+  rmp: 0.3  # Random Mating Probability
+  mutation_rate: 0.1
+
+tasks:
+  attack_mode: "degree"  # 2hop / degree / random
+  T1:
+    name: "Single Layer Influence Maximization"
+    budget: 10
+  T2:
+    name: "Cross Layer Influence Maximization"
+    budget: 10
+  T3:
+    name: "Robustness Optimization"
+    budget: 10
+    attack_ratio: 0.1
