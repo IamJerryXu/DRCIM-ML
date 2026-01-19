@@ -1,7 +1,12 @@
-data/
-dataset/
-checkpoints/
-results/
+data/*
+dataset/*
+checkpoints/*
+results/*
+!data/.gitkeep
+!dataset/.gitkeep
+!checkpoints/.gitkeep
+!results/.gitkeep
+
 *.pt
 *.pth
 *.ckpt
