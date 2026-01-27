@@ -48,7 +48,7 @@ flowchart LR
   C --> D["MFEA Engine"]
   D --> E["Evolution & Transfer"]
   E --> F["Output: Optimal Seeds"]
-
+```
   
 1.  **输入层**: 多层异构网络 (Layer 1, Layer 2)，节点编号相同但拓扑结构不同。
 2.  **GMA 引擎 (预训练)**:
