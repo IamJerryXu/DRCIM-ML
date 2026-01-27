@@ -42,11 +42,12 @@ Best Rcs T3: 66.80 (跨层协作鲁棒性)
 
 ```mermaid
 flowchart LR
-  A[Input (Multiplex Graph)] --> B[GMA Engine]
+  A["Input (Multiplex Graph)"] --> B["GMA Engine"]
   B --> C["Alignment & Attention"]
-  C --> D[MFEA Engine]
-  D --> E[Evolution & Transfer]
-  E --> F[Output: Optimal Seeds]
+  C --> D["MFEA Engine"]
+  D --> E["Evolution & Transfer"]
+  E --> F["Output: Optimal Seeds"]
+
 ```mermaid
 
 
