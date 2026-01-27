@@ -1,8 +1,8 @@
-# GMA-MFEA 技术白皮书 (Technical Whitepaper)
+# AlignEvoIM技术白皮书 (Technical Whitepaper)
 
-**项目名称**: Graph Manifold Alignment based Multifactorial Evolutionary Algorithm (GMA-MFEA)  
+**项目名称**: AlignEvoIM: Aligned Representation Learning based Multifactorial Evolutionary Influence Maximization  
 **核心目标**: 解决多层竞争网络下的鲁棒影响力最大化 (Multiplex RCIM) 问题。  
-**最后更新**: 2026-01-11
+**最后更新**: 2026-01-23
 
 ---
 
