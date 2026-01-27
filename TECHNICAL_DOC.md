@@ -40,6 +40,7 @@ Best Rcs T3: 66.80 (跨层协作鲁棒性)
 
 ### 流程概览
 
+```mermaid
 flowchart LR
   A["Input (Multiplex Graph)"] --> B["GMA Engine"]
   B --> C["Alignment & Attention"]
