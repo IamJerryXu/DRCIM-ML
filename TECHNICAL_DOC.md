@@ -40,17 +40,13 @@ Best Rcs T3: 66.80 (跨层协作鲁棒性)
 
 ### 流程概览
 
-```mermaid
 flowchart LR
   A["Input (Multiplex Graph)"] --> B["GMA Engine"]
   B --> C["Alignment & Attention"]
   C --> D["MFEA Engine"]
   D --> E["Evolution & Transfer"]
   E --> F["Output: Optimal Seeds"]
-
-```mermaid
-
-
+  
 1.  **输入层**: 多层异构网络 (Layer 1, Layer 2)，节点编号相同但拓扑结构不同。
 2.  **GMA 引擎 (预训练)**:
     *   利用 **KAA-GRIT** (基于 RRWP 的图归纳偏置变换器) 提取具备扩散感知能力的节点特征与注意力权重 ($\alpha$)。
