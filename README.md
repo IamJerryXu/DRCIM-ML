@@ -35,7 +35,17 @@ A node can be central in one layer and peripheral in another. Transferring its i
 
 **Robust evaluation.** The manuscript evaluates layer-wise competitive robustness, <i>R</i><sub>CS</sub>, and collaborative robustness, <i>R</i><sub>CR</sub>, over successive node removals. Candidate quality depends on the complete seed pair and the damage trajectory.
 
-<p align="center"><a href="assets/figures/framework.pdf">View the framework as PDF</a> &nbsp; · &nbsp; <a href="assets/figures/dat.pdf">View the DAT architecture</a></p>
+<p align="center"><a href="assets/figures/framework.pdf">View the framework as PDF</a></p>
+
+<a id="dat-architecture"></a>
+
+<p><img src="assets/readme/heading-dat.svg" width="600" alt="DAT architecture"></p>
+
+The diffusion-aware Transformer (DAT) incorporates relative random-walk probabilities into attention to represent the structural context of each node.
+
+<p align="center"><a href="assets/figures/dat.pdf"><img src="assets/figures/dat.png" width="820" alt="Figure 3. DAT architecture, with the stacked encoder on the left and the expanded RRWP-conditioned attention operations on the right."></a></p>
+
+<p align="center"><sub>DAT encoder and expanded attention mechanism.</sub><br><a href="assets/figures/dat.pdf">View the architecture as PDF</a></p>
 
 <a id="implementation"></a>
 
