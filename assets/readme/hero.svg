@@ -7,6 +7,5 @@
 <text x="600" y="197" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" fill="#3d494c">Solving the Robust Influence Maximization Problem</text>
 <text x="600" y="231" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" fill="#3d494c">in Competitive Multilayer Networks via a</text>
 <text x="600" y="265" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" font-style="italic" fill="#527a6a">Diffusion-Aware Role-Guided Evolutionary Approach</text>
-<path d="M24 299H1176" stroke="#d7e0df"/>
-<path d="M24 299H124" stroke="#527f92" stroke-width="3"/><path d="M124 299H224" stroke="#56806e" stroke-width="3"/><path d="M224 299H264" stroke="#aa7182" stroke-width="3"/>
+<path d="M24 299H1176" stroke="#879b9c" stroke-width="1.4"/>
 </svg>
