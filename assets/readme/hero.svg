@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="308" viewBox="0 0 1200 308" role="img" aria-labelledby="title desc">
+<title id="title">DRCIM-ML</title><desc id="desc">Solving the Robust Influence Maximization Problem in Competitive Multilayer Networks via a Diffusion-Aware Role-Guided Evolutionary Approach</desc>
+<rect width="1200" height="308" fill="#fff"/>
+<path d="M24 22H1176" stroke="#33474c" stroke-width="2"/>
+<text x="600" y="57" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" letter-spacing="3" fill="#627775">NETWORK SCIENCE &amp; EVOLUTIONARY COMPUTATION</text>
+<text x="600" y="143" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="82" font-style="italic" font-weight="700" fill="#2b4248">DRCIM-ML</text>
+<text x="600" y="197" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" fill="#3d494c">Solving the Robust Influence Maximization Problem</text>
+<text x="600" y="231" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" fill="#3d494c">in Competitive Multilayer Networks via a</text>
+<text x="600" y="265" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="26" font-style="italic" fill="#527a6a">Diffusion-Aware Role-Guided Evolutionary Approach</text>
+<path d="M24 299H1176" stroke="#d7e0df"/>
+<path d="M24 299H124" stroke="#527f92" stroke-width="3"/><path d="M124 299H224" stroke="#56806e" stroke-width="3"/><path d="M224 299H264" stroke="#aa7182" stroke-width="3"/>
+</svg>

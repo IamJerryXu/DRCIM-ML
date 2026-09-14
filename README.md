@@ -1,125 +1,156 @@
-# AlignEvoIM: Aligned Representation Learning based Multifactorial Evolutionary Influence Maximization
+<a id="top"></a>
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
-[![Status](https://img.shields.io/badge/Status-Working-green)](https://github.com/)
+<div align="center">
 
-基于**图流形对齐**的多任务演化算法，用于求解**多层竞争网络下的鲁棒影响力最大化 (RCIM)** 问题。
+<picture>
+<source media="(max-width: 600px)" srcset="assets/readme/hero-mobile.svg">
+<img src="assets/readme/hero.svg" width="100%" alt="DRCIM-ML — Solving the Robust Influence Maximization Problem in Competitive Multilayer Networks via a Diffusion-Aware Role-Guided Evolutionary Approach">
+</picture>
 
-> 详细技术架构请参考 [TECHNICAL_DOC.md](TECHNICAL_DOC.md)
+[Overview](#overview) &nbsp; · &nbsp; [Method](#method) &nbsp; · &nbsp; [Implementation](#implementation) &nbsp; · &nbsp; [Citation](#citation)
 
----
+</div>
 
-## 📊 最新实验结果
+<a id="overview"></a>
 
-在 475 节点双层网络上，budget=10：
+<p><img src="assets/readme/heading-overview.svg" width="600" alt="Research overview"></p>
 
-| 任务 | Rcs 值 | 说明 |
-|------|--------|------|
-| T1 (Layer 1) | 57.37 | Layer 1 竞争影响力 |
-| T2 (Layer 2) | 80.01 | Layer 2 竞争影响力 |
-| T3 (联合) | 66.80 | 跨层协作鲁棒性 |
+**DRCIM-ML** studies robust competitive influence maximization in multilayer networks. The goal is to select seed sets that sustain influence in the presence of competing cascades and progressive structural damage.
 
----
+A node can be central in one layer and peripheral in another. Transferring its identity therefore need not preserve its diffusion role. DRCIM-ML combines diffusion-aware representation learning with evolutionary multitasking to propose candidates by role and evaluate them under competition and node removal.
 
-## 🚀 快速开始
+<p align="center"><a href="assets/figures/motivation.pdf"><img src="assets/figures/motivation.png" width="100%" alt="Three-network motivating example: source node 3 maps to alternative target candidates 3 or 7; removing target node 6 isolates node 3."></a></p>
 
-### 1. 环境配置
+<p align="center"><sub>Cross-layer transfer proposals and an illustrative node removal. Role correspondence proposes a candidate; it does not establish robustness.</sub></p>
+
+<a id="method"></a>
+
+<p><img src="assets/readme/heading-method.svg" width="600" alt="Method overview"></p>
+
+<p align="center"><a href="assets/figures/framework.pdf"><img src="assets/figures/framework.png" width="100%" alt="DRCIM-ML framework: diffusion-aware role learning, role-guided multifactorial search, and robust evaluation."></a></p>
+
+**Diffusion-aware role learning.** A diffusion-aware Transformer uses relative random-walk probabilities to encode graph structure. Reconstruction, attention-aware distribution alignment, and role constraints support layer-wise importance priors and cross-layer role similarity.
+
+**Role-guided evolutionary search.** Related seed-selection tasks exchange candidates through a shared population. Importance priors guide sampling, while role correspondence guides cross-layer transfer. Population feedback updates the guidance, and a reinforcement-learning controller selects local-refinement actions.
+
+**Robust evaluation.** The manuscript evaluates layer-wise competitive robustness, <i>R</i><sub>CS</sub>, and collaborative robustness, <i>R</i><sub>CR</sub>, over successive node removals. Candidate quality depends on the complete seed pair and the damage trajectory.
+
+<p align="center"><a href="assets/figures/framework.pdf">View the framework as PDF</a> &nbsp; · &nbsp; <a href="assets/figures/dat.pdf">View the DAT architecture</a></p>
+
+<a id="implementation"></a>
+
+<p><img src="assets/readme/heading-implementation.svg" width="600" alt="Implementation and use"></p>
+
+The pipeline combines representation learning, cross-layer alignment, evolutionary seed search, and competitive influence evaluation. Configuration is provided in [config.yaml](config.yaml).
+
+### Environment
+
 ```bash
-conda create -n MIMMFEA python=3.8
-conda activate MIMMFEA
-pip install torch torch-geometric numpy networkx pyyaml tqdm
+git clone https://github.com/IamJerryXu/DRCIM-ML.git
+cd DRCIM-ML
+
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip install node2vec
 ```
 
-### 2. 运行方式
+Two additional dependencies must be supplied before running the pipeline:
+
+- **`torch-scatter`**, installed for the chosen PyTorch and CUDA versions. See the [PyG installation guide](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html).
+- **`ikan.kat_1dgroup_torch.KAT_Group_Torch`**, imported by the encoder. This external module must be available in the Python environment; it is not bundled in the repository.
+
+Set `project.device` in [config.yaml](config.yaml) to an available device. The checked-in value is `cuda:6`; change it to `cuda:0` or `cpu` as appropriate. The command-line interface has no `--device` option.
+
+### Network input
+
+Place network files in `dataset/train/`. Each text file contains layers marked by `layer:`, followed by undirected, unweighted edges. Use consistent node identifiers across layers and declare the node count in each layer header.
+
+```text
+layer:1 nodes=4 edges=3
+0 1
+1 2
+2 3
+layer:2 nodes=4 edges=3
+0 2
+0 3
+1 3
+```
+
+The example above illustrates the file format. Prepare your network data before running the pipeline. The evolution entry point uses the first loaded network and its first two layers.
+
+### Training and search
+
+After preparing the data and dependencies, configure the seed budgets, population size, generation count, and attack settings in [config.yaml](config.yaml).
 
 ```bash
-# 方式一：完整流程 (GMA预训练 + MFEA演化)
+# Pretraining followed by evolutionary search
 python -m code.run_gma_mfea --config config.yaml --mode all
 
-# 方式二：加载已有checkpoint后运行
-python -m code.run_gma_mfea --config config.yaml --mode load_checkpoint --checkpoint kaa_grit_twostage_v2_best
+# Pretraining only
+python -m code.run_gma_mfea --config config.yaml --mode pretrain
 
-# 方式三：仅运行MFEA演化 (需已有GMA输出)
+# Evolution using previously generated alignment outputs
 python -m code.run_gma_mfea --config config.yaml --mode evolution
 ```
 
----
+<details>
+<summary>Checkpoint loading and saved outputs</summary>
 
-## 📁 项目结构
+To load locally trained encoder weights:
 
-```
-GMA-MFEA/
-├── config.yaml              # 主配置文件
-├── code/
-│   ├── run_gma_mfea.py      # 主入口
-│   ├── gma_core/            # GMA 预训练引擎
-│   │   ├── train_gma.py
-│   │   ├── alignment.py
-│   │   └── kaa_grit.py
-│   ├── mfea_core/           # MFEA 演化引擎
-│   │   ├── run_mfea.py
-│   │   ├── tasks.py
-│   │   ├── operators.py
-│   │   ├── population.py
-│   │   └── local_search.py
-│   └── evaluation/          # 评估指标
-│       ├── calc_metrics.py
-│       └── approx_2hop.py
-├── checkpoints/             # 预训练模型
-├── data/alignment/          # GMA输出 (S_align, alpha)
-├── dataset/train/           # 训练数据
-└── results/                 # 实验结果
+```bash
+python -m code.run_gma_mfea --config config.yaml \
+  --mode load_checkpoint --checkpoint kaa_grit_v2
 ```
 
----
+`kaa_grit_v2` is the configured filename prefix, not a downloadable checkpoint. The corresponding files must already exist in `checkpoints/`.
 
-## ⚙️ 主要配置项
+- `checkpoints/<prefix>_encoder_a.pt` and `_encoder_b.pt` store the encoder weights.
+- `data/alignment/similarity_matrix/S_align.npy` stores cross-layer similarity.
+- `data/alignment/` also contains layer embeddings and `alpha_l1.npy` / `alpha_l2.npy`.
+- `results/best_t1_<timestamp>.json`, `best_t3_<timestamp>.json`, and `history_<timestamp>.json` store the exported search results and history. There is no separate T2 best-seed export in this entry point.
 
-```yaml
-mfea:
-  population_size: 100      # 种群大小
-  num_generations: 60       # 演化代数
-  budget_l1: 10             # Layer 1 种子数
-  budget_l2: 10             # Layer 2 种子数
-  
-  # 初始化比例
-  elite_ratio: 0.25         # α采样
-  robust_ratio: 0.25        # 2-hop鲁棒
-  aligned_ratio: 0.20       # 跨层对齐
-  random_ratio: 0.30        # 随机探索
-  
-  # 局部搜索
-  local_search_enabled: true
-  local_search_interval: 10
+</details>
 
-attack:
-  attack_ratio: 0.1         # 攻击比例
-  attack_mode: "2hop"
+### Code guide
+
+| Component | Source |
+| :--- | :--- |
+| Pipeline and command-line modes | [code/run_gma_mfea.py](code/run_gma_mfea.py) |
+| Representation learning and alignment | [code/gma_core/](code/gma_core/) |
+| Evolutionary search and local refinement | [code/mfea_core/](code/mfea_core/) |
+| Competitive influence evaluation | [code/evaluation/](code/evaluation/) |
+| Network loading and preprocessing | [code/utils/data_loader.py](code/utils/data_loader.py), [code/dataset/](code/dataset/) |
+| Synthetic network generation | [network_generation/](network_generation/) |
+
+<a id="citation"></a>
+
+<p><img src="assets/readme/heading-citation.svg" width="600" alt="Citation and contact"></p>
+
+If this work supports your research, please consider citing the manuscript.
+
+```bibtex
+@unpublished{xu2026drcimml,
+  title  = {Solving the Robust Influence Maximization Problem in Competitive
+            Multilayer Networks via a Diffusion-Aware Role-Guided
+            Evolutionary Approach},
+  author = {Xu, Yongxue and Liu, Ziqian and Huang, Yongqing and Wang, Shuai},
+  year   = {2026},
+  note   = {Unpublished manuscript},
+  url    = {https://github.com/IamJerryXu/DRCIM-ML}
+}
 ```
 
----
+For questions about the implementation, please [open an issue](https://github.com/IamJerryXu/DRCIM-ML/issues). Research enquiries can be directed through [Yongxue Xu's homepage](https://jerrysnow.me).
 
-## 📈 输出解读
+<details>
+<summary>Use and permissions</summary>
 
-```
-[Gen  10/60] Rcs: T1=57.37, T2=80.01, T3=66.80 | τ dist: T1=35, T2=32, T3=33 | 55.5s
-```
+The project is shared for academic research. No repository-wide license has been specified; public access alone does not grant unrestricted reuse or redistribution. Contact the maintainers for permissions. Dependencies remain subject to their respective licenses.
 
-| 字段 | 含义 |
-|------|------|
-| `Rcs T1/T2/T3` | 各任务的鲁棒竞争影响力 (平均每步影响节点数) |
-| `τ dist` | 种群在三个任务上的分布 |
+</details>
 
----
+<p align="center"><img src="assets/readme/closing.svg" width="100%" alt="DRCIM-ML · Diffusion-aware learning. Role-guided search."></p>
 
-## 📚 文档
-
-- [技术白皮书](TECHNICAL_DOC.md) - 详细架构、算法原理、实现细节
-- [集成指南](KAA_GRIT_INTEGRATION.md) - KAA-GRIT 编码器集成说明
-
----
-
-## 📝 License
-
-此项目仅供学术研究使用。
+<p align="center"><a href="#top">Back to top</a></p>
