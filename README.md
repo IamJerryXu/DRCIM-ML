@@ -26,8 +26,6 @@ A node can be central in one layer and peripheral in another. Transferring its i
 
 <p align="center"><a href="assets/figures/motivation.pdf"><img src="assets/figures/motivation.png" width="100%" alt="Cross-layer transfer proposals: source node 3 maps to alternative target candidates 3 or 7; removing target node 6 isolates node 3."></a></p>
 
-<p align="center"><sub>Cross-layer candidate transfer under node removal.</sub></p>
-
 <a id="method"></a>
 
 <h2><img src="assets/readme/heading-method.svg" height="36" alt="Method overview"></h2>
