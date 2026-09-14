@@ -52,7 +52,15 @@ DAT provides the node representations used for role-guided search. The figure ex
 
 <h2><img src="assets/readme/heading-implementation.svg" height="36" alt="Implementation"></h2>
 
-The [usage guide](docs/usage.md) covers installation, network preparation, and training and search. Experiment settings are collected in [config.yaml](config.yaml).
+The implementation combines representation pretraining with role-guided evolutionary search. Follow the [usage guide](docs/usage.md) to install the dependencies and prepare multilayer network data, then set the seed budgets, population size, and attack settings in [config.yaml](config.yaml).
+
+Run both stages with
+
+```bash
+python -m code.run_gma_mfea --config config.yaml --mode all
+```
+
+Separate pretraining and search modes, checkpoint loading, and saved outputs are described in the guide.
 
 <a id="citation"></a>
 
@@ -72,4 +80,8 @@ If this work supports your research, please consider citing the manuscript.
 }
 ```
 
-[Research enquiries](https://jerrysnow.me) · [Questions and discussion](https://github.com/IamJerryXu/DRCIM-ML/issues)
+---
+
+<p align="center"><em>We welcome discussion and collaboration on network diffusion and evolutionary optimization.</em></p>
+
+<p align="center"><a href="https://jerrysnow.me">Contact</a> · <a href="https://github.com/IamJerryXu/DRCIM-ML/issues">Questions and discussion</a></p>
